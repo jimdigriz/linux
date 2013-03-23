@@ -1,0 +1,53 @@
+/*
+ * Copyright (C) 2013 Alexander Clouter <alex@digriz.org.uk>
+ *
+ * This file is licensed under the terms of the GNU General Public
+ * License version 2. This program is licensed "as is" without any
+ * warranty of any kind, whether express or implied.
+ */
+
+/dts-v1/;
+/include/ "orion5x.dtsi"
+
+/ {
+	model = "Technologic Systems TS-7800";
+	compatible = "ts,ts7800", "marvell,orion5x-88f5182", "marvell,orion5x";
+
+	memory {
+		reg = <0x00000000 0x8000000>; /* 128 MB */
+	};
+
+	chosen {
+		bootargs = "console=ttyS0,115200n8 earlyprintk";
+	};
+
+	ocp@f1000000 {
+		serial@12000 {
+			clock-frequency = <166666667>;
+			status = "okay";
+		};
+
+		serial@12100 {
+			clock-frequency = <166666667>;
+			status = "okay";
+		};
+
+		ehci@50000 {
+			status = "okay";
+		};
+
+		ehci@a0000 {
+			status = "okay";
+		};
+
+		sata@80000 {
+			status = "okay";
+			nr-ports = <2>;
+		};
+
+		/* disable crypto as it crashes the board */
+		crypto@90000 {
+			status = "disabled";
+		};
+	};
+};

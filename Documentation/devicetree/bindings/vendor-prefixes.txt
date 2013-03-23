@@ -56,6 +56,7 @@ ste	ST-Ericsson
 stericsson	ST-Ericsson
 ti	Texas Instruments
 toshiba	Toshiba Corporation
+ts	Technologic Systems
 via	VIA Technologies, Inc.
 wlf	Wolfson Microelectronics
 wm	Wondermedia Technologies, Inc.

@@ -985,6 +985,8 @@ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
 W:	http://www.digriz.org.uk/ts78xx/kernel
 S:	Maintained
 F:	arch/arm/mach-orion5x/ts78xx-*
+F:	arch/arm/mach-orion5x/board-ts7800.c
+F:	arch/arm/boot/dts/orion5x-ts7800.dts
 
 ARM/MICREL KS8695 ARCHITECTURE
 M:	Greg Ungerer <gerg@uclinux.org>

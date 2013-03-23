@@ -63,6 +63,12 @@ void edmini_v2_init(void);
 static inline void edmini_v2_init(void) {};
 #endif
 
+#ifdef CONFIG_MACH_TS7800_DT
+void ts7800_init(void);
+#else
+static inline void ts7800_init(void) {};
+#endif
+
 struct meminfo;
 struct tag;
 extern void __init tag_fixup_mem32(struct tag *, char **, struct meminfo *);
