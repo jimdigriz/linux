@@ -12,6 +12,7 @@
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/platform_device.h>
+#include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/nand.h>
@@ -23,7 +24,7 @@ struct plat_nand_data {
 	void __iomem		*io_base;
 };
 
-static const char *part_probe_types[] = { "cmdlinepart", NULL };
+static const char *part_probe_types[] = { "cmdlinepart", "ofpart", NULL };
 
 /*
  * Probe for the NAND device.
@@ -42,14 +43,11 @@ static int plat_nand_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	if (pdata->chip.nr_chips < 1) {
-		dev_err(&pdev->dev, "invalid number of chips specified\n");
-		return -EINVAL;
-	}
-
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "nand_data");
 	if (!res)
-		return -ENXIO;
+		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+		if (!res)
+			return -ENXIO;
 
 	/* Allocate memory for the device structure (and zero it) */
 	data = kzalloc(sizeof(struct plat_nand_data), GFP_KERNEL);
@@ -79,15 +77,40 @@ static int plat_nand_probe(struct platform_device *pdev)
 
 	data->chip.IO_ADDR_R = data->io_base;
 	data->chip.IO_ADDR_W = data->io_base;
+
+	if (pdev->dev.of_node) {
+		int i;
+
+		if (!of_property_read_u32(pdev->dev.of_node,
+						"nr-chips", &i))
+			data->chip.numchips = i;
+		if (!of_property_read_u32(pdev->dev.of_node,
+						"chip-delay", &i))
+			data->chip.chip_delay = (u8)i;
+		if (!of_property_read_u32(pdev->dev.of_node,
+						"bank-width", &i)) {
+			if (i == 2)
+				data->chip.options |= NAND_BUSWIDTH_16;
+			else if (i != 1) {
+				dev_warn(&pdev->dev,
+					"%d bit bus width out of range\n", i);
+			}
+		}
+		if (of_get_property(pdev->dev.of_node, "bbt-use-flash", &i))
+			data->chip.bbt_options |= NAND_BBT_USE_FLASH;
+	} else {
+		data->chip.numchips = pdata->chip.nr_chips;
+		data->chip.chip_delay = pdata->chip.chip_delay;
+		data->chip.options |= pdata->chip.options;
+		data->chip.bbt_options |= pdata->chip.bbt_options;
+	}
+
 	data->chip.cmd_ctrl = pdata->ctrl.cmd_ctrl;
 	data->chip.dev_ready = pdata->ctrl.dev_ready;
 	data->chip.select_chip = pdata->ctrl.select_chip;
 	data->chip.write_buf = pdata->ctrl.write_buf;
 	data->chip.read_buf = pdata->ctrl.read_buf;
 	data->chip.read_byte = pdata->ctrl.read_byte;
-	data->chip.chip_delay = pdata->chip.chip_delay;
-	data->chip.options |= pdata->chip.options;
-	data->chip.bbt_options |= pdata->chip.bbt_options;
 
 	data->chip.ecc.hwctl = pdata->ctrl.hwcontrol;
 	data->chip.ecc.layout = pdata->chip.ecclayout;
@@ -102,8 +125,14 @@ static int plat_nand_probe(struct platform_device *pdev)
 			goto out;
 	}
 
+	if (data->chip.numchips < 1) {
+		dev_err(&pdev->dev, "invalid number of chips specified\n");
+		err = -EINVAL;
+		goto out;
+	}
+
 	/* Scan to find existence of the device */
-	if (nand_scan(&data->mtd, pdata->chip.nr_chips)) {
+	if (nand_scan(&data->mtd, data->chip.numchips)) {
 		err = -ENXIO;
 		goto out;
 	}

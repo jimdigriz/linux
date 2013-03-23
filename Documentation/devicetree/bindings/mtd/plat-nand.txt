@@ -1,0 +1,93 @@
+NAND support for Generic NAND driver
+
+Required properties:
+- compatible : "gen_nand"
+- reg : Array of base physical addresses of the NAND and the length of memory
+	mapped regions.  You *should* have a "nand_data" reg which is the
+	data io region (if not named, then the first reg is used for
+	IO_ADDR_R/IO_ADDR_W), additional regs are platform defined
+- nr-chips : Number of physical chips
+
+Optional properties:
+- reg-name : "nand_data" *should* be defined, additional ones are platform
+		defined
+- bank-width : Width in bytes of the device. Default is 1 (8bit), 2 (16bit)
+		implies NAND_BUSWIDTH_16 and any other value is invalid
+- chip-delay : Chip dependent delay for transferring data from array to read
+		registers in usecs
+- bbt-use-flash : Use a flash based bad block table.  Default, OOB identifier
+		is saved in OOB area
+
+The device tree may optionally contain sub-nodes describing partitions of the
+address space. See partition.txt for more detail.
+
+Example:
+
+nand@800 {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	compatible = "ts,nand", "gen_nand";
+	reg =   <0x800 0x04>,
+		<0x804 0x04>;
+	reg-names = "nand_ctrl", "nand_data";
+	nr-chips = <1>;
+	chip-delay = <15>;
+	bbt-use-flash;
+
+	partition@0 {
+		label = "mbr";
+		reg = <0x00000000 0x20000>;
+		read-only;
+	};
+
+	partition@20000 {
+		label = "kernel";
+		reg = <0x00020000 0x400000>;
+	};
+
+	partition@420000 {
+		label = "initrd";
+		reg = <0x00420000 0x400000>;
+	};
+
+	partition@820000 {
+		label = "rootfs";
+		reg = <0x00820000 0x1f7e0000>;
+	};
+};
+
+N.B. to use the plat-nand driver, the platform board code does still need to
+	setup platform_nand_data and hook it into the platform_device so
+	the callbacks (for at least .cmd_ctrl and .dev_ready) are available.
+
+Example:
+
+static struct platform_nand_data ts7800_nand_data = {
+        .ctrl   = {
+                .cmd_ctrl               = ts7800_nand_cmd_ctrl,
+                .dev_ready              = ts7800_nand_dev_ready,
+        },
+};
+
+static int ts7800_platform_notifier(struct notifier_block *nb,
+                                  unsigned long event, void *__dev)
+{
+        struct device *dev = __dev;
+
+        if (event != BUS_NOTIFY_ADD_DEVICE)
+                return NOTIFY_DONE;
+
+        if (of_device_is_compatible(dev->of_node, "ts,nand"))
+                dev->platform_data = &ts7800_nand_data;
+
+        return NOTIFY_OK;
+}
+
+static struct notifier_block ts7800_platform_nb = {
+        .notifier_call = ts7800_platform_notifier,
+};
+
+void __init ts7800_init(void)
+{
+        bus_register_notifier(&platform_bus_type, &ts7800_platform_nb);
+}
