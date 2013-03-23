@@ -21,6 +21,46 @@
 		bootargs = "console=ttyS0,115200n8 earlyprintk";
 	};
 
+	fpga@e8000000 {
+	        #address-cells = <1>;
+	        #size-cells = <1>;
+		compatible = "simple-bus";
+		ranges = <0x00000000 0xe8000000 0x10000000>;
+
+		nand@800 {
+		        #address-cells = <1>;
+		        #size-cells = <1>;
+			compatible = "ts,nand", "gen_nand";
+			reg =	<0x800 0x04>,
+				<0x804 0x04>;
+			reg-names = "nand_ctrl", "nand_data";
+			nr-chips = <1>;
+			chip-delay = <15>;
+			bbt-use-flash;
+
+			partition@0 {
+				label = "mbr";
+				reg = <0x00000000 0x20000>;
+				read-only;
+			};
+
+			partition@20000 {
+				label = "kernel";
+				reg = <0x00020000 0x400000>;
+			};
+
+			partition@420000 {
+				label = "initrd";
+				reg = <0x00420000 0x400000>;
+			};
+
+			partition@820000 {
+				label = "rootfs";
+				reg = <0x00820000 0x1f7e0000>;
+			};
+		};
+	};
+
 	ocp@f1000000 {
 		serial@12000 {
 			clock-frequency = <166666667>;
