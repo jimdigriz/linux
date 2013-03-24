@@ -27,6 +27,14 @@
 		compatible = "simple-bus";
 		ranges = <0x00000000 0xe8000000 0x10000000>;
 
+		hwrng@44 {
+		        #address-cells = <1>;
+		        #size-cells = <1>;
+			compatible = "timeriomem_rng";
+			reg = <0x44 0x04>;
+			period = <1000000>;
+		};
+
 		nand@800 {
 			#address-cells = <1>;
 			#size-cells = <1>;
