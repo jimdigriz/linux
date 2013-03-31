@@ -22,14 +22,14 @@
 	};
 
 	fpga@e8000000 {
-	        #address-cells = <1>;
-	        #size-cells = <1>;
+		#address-cells = <1>;
+		#size-cells = <1>;
 		compatible = "simple-bus";
 		ranges = <0x00000000 0xe8000000 0x10000000>;
 
 		nand@800 {
-		        #address-cells = <1>;
-		        #size-cells = <1>;
+			#address-cells = <1>;
+			#size-cells = <1>;
 			compatible = "ts,nand", "gen_nand";
 			reg =	<0x800 0x04>,
 				<0x804 0x04>;
