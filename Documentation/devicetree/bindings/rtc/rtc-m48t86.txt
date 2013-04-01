@@ -1,0 +1,17 @@
+RTC support for the rtc-m48t86 driver
+
+Required properties:
+- compatible : "rtc-m48t86"
+- reg : Array of base physical addresses for the RTC control and data
+- reg-names : must have "rtc_index" and "rtc_data"
+
+Example:
+
+rtc@808 {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	compatible = "rtc-m48t86";
+	reg =	<0x808 0x04>,
+		<0x80c 0x04>;
+	reg-names = "rtc_index", "rtc_data";
+};

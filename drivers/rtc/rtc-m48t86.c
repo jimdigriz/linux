@@ -20,6 +20,7 @@
 #include <linux/bcd.h>
 #include <linux/slab.h>
 #include <linux/io.h>
+#include <linux/of.h>
 
 #define M48T86_REG_SEC		0x00
 #define M48T86_REG_SECALRM	0x01
@@ -335,10 +336,17 @@ static int m48t86_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
+static const struct of_device_id m48t86_rtc_match[] = {
+	{ .compatible = "rtc-m48t86" },
+	{},
+};
+MODULE_DEVICE_TABLE(of, m48t86_rtc_match);
+
 static struct platform_driver m48t86_rtc_platform_driver = {
 	.driver		= {
-		.name	= "rtc-m48t86",
-		.owner	= THIS_MODULE,
+		.name		= "rtc-m48t86",
+		.owner		= THIS_MODULE,
+		.of_match_table	= m48t86_rtc_match,
 	},
 	.probe		= m48t86_rtc_probe,
 	.remove		= m48t86_rtc_remove,
