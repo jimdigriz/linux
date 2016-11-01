@@ -158,6 +158,7 @@ struct intel_guc {
 	struct ida ctx_ids;
 
 	struct i915_guc_client *execbuf_client;
+	struct i915_guc_client *ipts_client;
 
 	DECLARE_BITMAP(doorbell_bitmap, GUC_MAX_DOORBELLS);
 	uint32_t db_cacheline;		/* Cyclic counter mod pagesize	*/
@@ -227,5 +228,10 @@ void intel_huc_init(struct drm_i915_private *dev_priv);
 void intel_huc_fini(struct drm_i915_private  *dev_priv);
 int intel_huc_load(struct drm_i915_private *dev_priv);
 void intel_guc_auth_huc(struct drm_i915_private *dev_priv);
+
+int i915_guc_ipts_submission_enable(struct drm_i915_private *dev_priv,
+				    struct i915_gem_context *ctx);
+void i915_guc_ipts_submission_disable(struct drm_i915_private *dev_priv);
+void i915_guc_ipts_reacquire_doorbell(struct drm_i915_private *dev_priv);
 
 #endif
